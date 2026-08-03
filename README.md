@@ -9,6 +9,8 @@
 - **[Windows 安装包（推荐）](https://github.com/Diego-2024/GZHU-yuketang/releases/download/v1.0.0/yuketang-bot-1.0.0-setup.exe)** → `yuketang-bot-1.0.0-setup.exe`
 - **[Windows 便携版](https://github.com/Diego-2024/GZHU-yuketang/releases/download/v1.0.0/yuketang-bot.exe)** → `yuketang-bot.exe`（下载后双击即可）
 
+> **便携版提示：** 建议新建一个空文件夹（如 `D:\yuketang-bot\`），把 `yuketang-bot.exe` 放进去再运行。程序会在同目录生成 `config.yaml`、`data/`、`profiles/` 等文件，避免散落在桌面或下载目录。
+
 > 若 Windows SmartScreen 提示「已阻止」，点击「更多信息」→「仍要运行」。详细安装与使用步骤见下方。
 
 ## 声明
@@ -64,8 +66,10 @@
 
 **方式 B：便携版**
 
-1. 下载 [`yuketang-bot.exe`](https://github.com/Diego-2024/GZHU-yuketang/releases/download/v1.0.0/yuketang-bot.exe) 到任意文件夹
-2. 双击运行（首次会自动生成 `config.yaml`）
+1. **新建一个空文件夹**（如 `D:\yuketang-bot\`），下载 [`yuketang-bot.exe`](https://github.com/Diego-2024/GZHU-yuketang/releases/download/v1.0.0/yuketang-bot.exe) 放入其中
+2. 双击运行（首次会在同目录自动生成 `config.yaml`；之后还会出现 `data/`、`profiles/` 等数据目录）
+
+> 不建议直接放在桌面或「下载」文件夹里运行，以免配置与缓存文件散落、不好清理。
 
 > **首次启动较慢：** 单文件 exe 首次解压需要几秒到十几秒，请等待浏览器自动打开、托盘出现图标。
 
