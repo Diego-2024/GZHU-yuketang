@@ -9,7 +9,25 @@
 
 参考 Binggo 的本机控制台形态：仅绑定 `127.0.0.1`，数据不离开本机。
 
-## 安装
+## 下载
+
+最新版本：[GitHub Releases](https://github.com/Diego-2024/GZHU-yuketang/releases)
+
+| 文件 | 说明 |
+|------|------|
+| `yuketang-bot-1.0.0-setup.exe` | Windows 安装包（推荐） |
+| `yuketang-bot.exe` | Windows 便携版（下载后双击即可） |
+
+使用说明：
+
+1. 下载安装包或便携版 exe
+2. 双击运行后会自动打开浏览器控制台 `http://127.0.0.1:18765/`
+3. 系统托盘会出现图标，右键可「打开控制台」/「退出」
+4. 若 Windows SmartScreen 提示，选择「仍要运行」（未做商业代码签名）
+
+> 安装包 / 便携版不包含登录态与课程数据，首次使用需扫码登录并发现课程。
+
+## 安装（源码运行）
 
 ```bash
 pip install -r requirements.txt
