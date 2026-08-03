@@ -44,6 +44,7 @@ HIDDEN_IMPORTS = [
     "yuketang_bot.web.app",
     "yuketang_bot.web.jobs",
     "yuketang_bot.web.schemas",
+    "yuketang_bot.paths",
     "yuketang_bot.config",
     "yuketang_bot.store",
     "yuketang_bot.browser",

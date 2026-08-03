@@ -3,10 +3,11 @@
 双击启动器：托盘图标 + 自动打开浏览器控制台
 
 打包后由 PyInstaller 调用，运行效果：
-1. 双击 exe，复制 config.example.yaml -> config.yaml（首次）
-2. 在后台启动 FastAPI 服务
-3. 自动打开浏览器访问 http://127.0.0.1:18765/
-4. 在系统托盘显示图标，右键可「打开控制台」/「退出」
+1. 选择可写数据目录（Program Files 下会落到 %LOCALAPPDATA%\\yuketang-bot）
+2. 复制 config.example.yaml -> config.yaml（首次）
+3. 在后台启动 FastAPI 服务
+4. 自动打开浏览器访问 http://127.0.0.1:18765/
+5. 在系统托盘显示图标，右键可「打开控制台」/「退出」
 """
 
 from __future__ import annotations
@@ -22,30 +23,19 @@ import urllib.request
 import webbrowser
 from pathlib import Path
 
+from yuketang_bot.paths import get_data_dir, get_install_dir, get_resource_dir
+
 DEFAULT_PORT = 18765
 
 
-def get_app_dir() -> Path:
-    """可执行文件所在目录（即用户工作目录）"""
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).resolve().parent
-    return Path(__file__).resolve().parent.parent
-
-
-def get_resource_dir() -> Path:
-    """PyInstaller 解压目录或源码目录"""
-    if getattr(sys, "frozen", False):
-        return Path(sys._MEIPASS)
-    return Path(__file__).resolve().parent.parent
-
-
 def get_log_path() -> Path:
-    return get_app_dir() / "yuketang-bot.log"
+    return get_data_dir() / "yuketang-bot.log"
 
 
 def log(msg: str) -> None:
     try:
         path = get_log_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "a", encoding="utf-8") as f:
             f.write(time.strftime("%Y-%m-%d %H:%M:%S") + " " + msg + "\n")
     except Exception:
@@ -62,19 +52,21 @@ def show_error(title: str, message: str) -> None:
 
 
 def ensure_config() -> str:
-    """确保 config.yaml 存在，不存在则从 bundled 示例复制"""
-    app_dir = get_app_dir()
-    config_path = app_dir / "config.yaml"
+    """确保可写数据目录中存在 config.yaml"""
+    data_dir = get_data_dir()
+    data_dir.mkdir(parents=True, exist_ok=True)
+    config_path = data_dir / "config.yaml"
     if config_path.exists():
         return str(config_path)
 
-    example_path = app_dir / "config.example.yaml"
-    if not example_path.exists():
-        bundled = get_resource_dir() / "config.example.yaml"
-        if bundled.exists():
-            example_path = bundled
+    candidates = [
+        get_install_dir() / "config.example.yaml",
+        get_resource_dir() / "config.example.yaml",
+        data_dir / "config.example.yaml",
+    ]
+    example_path = next((p for p in candidates if p.exists()), None)
 
-    if example_path.exists():
+    if example_path is not None:
         shutil.copy(example_path, config_path)
         log("generated config from example: %s" % config_path)
     else:
@@ -91,7 +83,11 @@ def ensure_config() -> str:
             "  playback_rate: 1\n"
             "  batch_sleep: 2\n"
             "  target_rate: 0.95\n"
-            "  max_batches: 200\n",
+            "  max_batches: 200\n"
+            "db_path: ./data/yuketang.db\n"
+            "profiles_root: ./profiles\n"
+            "base_port: 9222\n"
+            "listen_timeout: 60\n",
             encoding="utf-8",
         )
         log("generated fallback config: %s" % config_path)
@@ -100,7 +96,6 @@ def ensure_config() -> str:
 
 
 def _create_tray_image():
-    """用 Pillow 生成一个简单的天蓝色托盘图标"""
     from PIL import Image, ImageDraw
 
     size = 64
@@ -183,23 +178,31 @@ def main(port: int = DEFAULT_PORT):
     """启动器入口"""
     multiprocessing.freeze_support()
 
-    # windowed 模式下补齐 stdout/stderr，避免第三方库崩溃
     if sys.stdout is None:
         sys.stdout = open(os.devnull, "w", encoding="utf-8")
     if sys.stderr is None:
         sys.stderr = open(os.devnull, "w", encoding="utf-8")
 
-    app_dir = get_app_dir()
-    os.chdir(app_dir)
-    log("app_dir=%s frozen=%s" % (app_dir, getattr(sys, "frozen", False)))
+    install_dir = get_install_dir()
+    data_dir = get_data_dir()
+    os.chdir(data_dir)
+    log(
+        "install_dir=%s data_dir=%s frozen=%s"
+        % (install_dir, data_dir, getattr(sys, "frozen", False))
+    )
     if getattr(sys, "frozen", False):
         log("meipass=%s" % getattr(sys, "_MEIPASS", ""))
+    if install_dir != data_dir:
+        log("install dir not writable, using AppData data_dir")
 
     try:
         config_path = ensure_config()
     except Exception:
         log("ensure_config failed:\n" + traceback.format_exc())
-        show_error("雨课堂控制台", "配置初始化失败，请查看日志：\n%s" % get_log_path())
+        show_error(
+            "雨课堂控制台",
+            "配置初始化失败，请查看日志：\n%s" % get_log_path(),
+        )
         return
 
     url = f"http://127.0.0.1:{port}/"
@@ -219,7 +222,7 @@ def main(port: int = DEFAULT_PORT):
         show_error(
             "雨课堂控制台启动失败",
             "无法连接到 http://127.0.0.1:%d/\n\n"
-            "请查看同目录日志文件：\n%s\n\n"
+            "请查看日志文件：\n%s\n\n"
             "也可先结束任务管理器中的 yuketang-bot.exe 后重试。"
             % (port, get_log_path()),
         )
@@ -229,7 +232,6 @@ def main(port: int = DEFAULT_PORT):
         _run_tray(port)
     except Exception:
         log("tray failed:\n" + traceback.format_exc())
-        # 托盘失败时保持进程，避免服务立刻退出
         while True:
             time.sleep(3600)
 

@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
 
 import yaml
 
 from .models import Account, AppConfig, LoopConfig
+from .paths import get_data_dir
 
 
 DEFAULT_CONFIG_NAME = "config.yaml"
@@ -19,6 +21,13 @@ def get_config_path() -> Optional[Path]:
     return _last_config_path
 
 
+def _project_root() -> Path:
+    """相对路径解析根目录：打包后用可写数据目录"""
+    if getattr(sys, "frozen", False):
+        return get_data_dir()
+    return Path(__file__).resolve().parent.parent
+
+
 def _resolve_path(raw: str, project_root: Path) -> str:
     p = Path(raw)
     if not p.is_absolute():
@@ -27,7 +36,7 @@ def _resolve_path(raw: str, project_root: Path) -> str:
 
 
 def resolve_config_path(path: Optional[Union[str, Path]] = None) -> Path:
-    project_root = Path(__file__).resolve().parent.parent
+    project_root = _project_root()
     if path is None:
         cwd_cfg = Path.cwd() / DEFAULT_CONFIG_NAME
         root_cfg = project_root / DEFAULT_CONFIG_NAME
@@ -52,10 +61,10 @@ def load_config(path: Optional[Union[str, Path]] = None) -> AppConfig:
     默认查找顺序：
       1. 显式 path
       2. 当前工作目录 config.yaml
-      3. 项目根目录（main.py 所在目录）config.yaml
+      3. 可写数据目录 / 项目根目录 config.yaml
     """
     global _last_config_path
-    project_root = Path(__file__).resolve().parent.parent
+    project_root = _project_root()
     cfg_path = resolve_config_path(path)
     _last_config_path = cfg_path
 

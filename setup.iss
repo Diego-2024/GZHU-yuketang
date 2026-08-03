@@ -16,10 +16,11 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}/issues
 AppUpdatesURL={#MyAppURL}/releases
-DefaultDirName={autopf}\yuketang-bot
+DefaultDirName={localappdata}\Programs\yuketang-bot
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 LicenseFile=
+InfoBeforeFile=
 OutputDir=dist
 OutputBaseFilename=yuketang-bot-{#MyAppVersion}-setup
 SetupIconFile=
@@ -34,6 +35,8 @@ VersionInfoVersion={#MyAppVersion}
 CloseApplications=yes
 RestartApplications=no
 WizardStyle=modern
+DirExistsWarning=no
+UsePreviousAppDir=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
