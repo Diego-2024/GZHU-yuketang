@@ -11,11 +11,14 @@
 
 from __future__ import annotations
 
+import multiprocessing
 import os
 import shutil
 import sys
 import threading
 import time
+import traceback
+import urllib.request
 import webbrowser
 from pathlib import Path
 
@@ -36,6 +39,28 @@ def get_resource_dir() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
+def get_log_path() -> Path:
+    return get_app_dir() / "yuketang-bot.log"
+
+
+def log(msg: str) -> None:
+    try:
+        path = get_log_path()
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(time.strftime("%Y-%m-%d %H:%M:%S") + " " + msg + "\n")
+    except Exception:
+        pass
+
+
+def show_error(title: str, message: str) -> None:
+    try:
+        import ctypes
+
+        ctypes.windll.user32.MessageBoxW(0, message, title, 0x10)
+    except Exception:
+        pass
+
+
 def ensure_config() -> str:
     """确保 config.yaml 存在，不存在则从 bundled 示例复制"""
     app_dir = get_app_dir()
@@ -51,9 +76,8 @@ def ensure_config() -> str:
 
     if example_path.exists():
         shutil.copy(example_path, config_path)
-        print(f"已生成默认配置: {config_path}")
+        log("generated config from example: %s" % config_path)
     else:
-        # 兜底：生成一个最小配置
         config_path.write_text(
             "# 雨课堂通用刷课工具配置\n"
             "base_url: https://www.yuketang.cn\n"
@@ -70,7 +94,7 @@ def ensure_config() -> str:
             "  max_batches: 200\n",
             encoding="utf-8",
         )
-        print(f"已生成兜底配置: {config_path}")
+        log("generated fallback config: %s" % config_path)
 
     return str(config_path)
 
@@ -82,7 +106,6 @@ def _create_tray_image():
     size = 64
     img = Image.new("RGBA", (size, size), (135, 206, 250, 255))
     draw = ImageDraw.Draw(img)
-    # 白色书本/屏幕形状
     draw.rounded_rectangle(
         [size // 5, size // 5, 4 * size // 5, 4 * size // 5],
         radius=8,
@@ -90,7 +113,6 @@ def _create_tray_image():
         outline=(70, 130, 180, 255),
         width=3,
     )
-    # 蓝色横线模拟文字
     for i, y in enumerate([size // 2 - 6, size // 2, size // 2 + 6, size // 2 + 12]):
         width = 28 - i * 4
         draw.line(
@@ -118,7 +140,7 @@ def _run_tray(port: int = DEFAULT_PORT):
         _create_tray_image(),
         "雨课堂控制台",
         menu=pystray.Menu(
-            pystray.MenuItem("打开控制台", open_console),
+            pystray.MenuItem("打开控制台", open_console, default=True),
             pystray.MenuItem("退出", exit_app),
         ),
     )
@@ -126,25 +148,62 @@ def _run_tray(port: int = DEFAULT_PORT):
 
 
 def _run_server(config_path: str, port: int = DEFAULT_PORT):
-    from yuketang_bot.web.app import run_server
+    try:
+        log("server thread starting on port %d" % port)
+        from yuketang_bot.web.app import run_server
 
-    run_server(
-        host="127.0.0.1",
-        port=port,
-        config_path=config_path,
-        open_browser=False,
-    )
+        run_server(
+            host="127.0.0.1",
+            port=port,
+            config_path=config_path,
+            open_browser=False,
+        )
+    except Exception:
+        log("server thread crashed:\n" + traceback.format_exc())
+        show_error(
+            "雨课堂控制台启动失败",
+            "本地服务启动失败，请查看日志：\n%s" % get_log_path(),
+        )
+
+
+def wait_server_ready(port: int, timeout: float = 20.0) -> bool:
+    url = "http://127.0.0.1:%d/" % port
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(url, timeout=1) as resp:
+                if resp.status == 200:
+                    return True
+        except Exception:
+            time.sleep(0.4)
+    return False
 
 
 def main(port: int = DEFAULT_PORT):
     """启动器入口"""
+    multiprocessing.freeze_support()
+
+    # windowed 模式下补齐 stdout/stderr，避免第三方库崩溃
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, "w", encoding="utf-8")
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, "w", encoding="utf-8")
+
     app_dir = get_app_dir()
     os.chdir(app_dir)
+    log("app_dir=%s frozen=%s" % (app_dir, getattr(sys, "frozen", False)))
+    if getattr(sys, "frozen", False):
+        log("meipass=%s" % getattr(sys, "_MEIPASS", ""))
 
-    config_path = ensure_config()
+    try:
+        config_path = ensure_config()
+    except Exception:
+        log("ensure_config failed:\n" + traceback.format_exc())
+        show_error("雨课堂控制台", "配置初始化失败，请查看日志：\n%s" % get_log_path())
+        return
+
     url = f"http://127.0.0.1:{port}/"
 
-    # 在后台线程启动 FastAPI 服务
     server_thread = threading.Thread(
         target=_run_server,
         args=(config_path, port),
@@ -152,14 +211,27 @@ def main(port: int = DEFAULT_PORT):
     )
     server_thread.start()
 
-    # 等待服务启动
-    time.sleep(1.5)
+    if wait_server_ready(port, timeout=25.0):
+        log("server ready, opening browser")
+        webbrowser.open(url)
+    else:
+        log("server not ready after timeout")
+        show_error(
+            "雨课堂控制台启动失败",
+            "无法连接到 http://127.0.0.1:%d/\n\n"
+            "请查看同目录日志文件：\n%s\n\n"
+            "也可先结束任务管理器中的 yuketang-bot.exe 后重试。"
+            % (port, get_log_path()),
+        )
+        return
 
-    # 自动打开浏览器
-    webbrowser.open(url)
-
-    # 进入托盘循环
-    _run_tray(port)
+    try:
+        _run_tray(port)
+    except Exception:
+        log("tray failed:\n" + traceback.format_exc())
+        # 托盘失败时保持进程，避免服务立刻退出
+        while True:
+            time.sleep(3600)
 
 
 if __name__ == "__main__":

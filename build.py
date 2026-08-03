@@ -7,19 +7,53 @@ PyInstaller 打包脚本
 
 输出：
     dist/yuketang-bot.exe
-
-首次运行前请确保依赖已安装：
-    pip install -r requirements.txt
 """
 
 from __future__ import annotations
 
 import os
 import shutil
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
+
+HIDDEN_IMPORTS = [
+    "uvicorn",
+    "uvicorn.logging",
+    "uvicorn.loops",
+    "uvicorn.loops.auto",
+    "uvicorn.protocols",
+    "uvicorn.protocols.http",
+    "uvicorn.protocols.http.auto",
+    "uvicorn.protocols.websockets",
+    "uvicorn.protocols.websockets.auto",
+    "uvicorn.lifespan",
+    "uvicorn.lifespan.on",
+    "fastapi",
+    "starlette",
+    "starlette.responses",
+    "starlette.staticfiles",
+    "pydantic",
+    "yaml",
+    "pystray",
+    "PIL",
+    "PIL.Image",
+    "PIL.ImageDraw",
+    "yuketang_bot",
+    "yuketang_bot.web",
+    "yuketang_bot.web.app",
+    "yuketang_bot.web.jobs",
+    "yuketang_bot.web.schemas",
+    "yuketang_bot.config",
+    "yuketang_bot.store",
+    "yuketang_bot.browser",
+    "yuketang_bot.discover",
+    "yuketang_bot.runner",
+    "yuketang_bot.api",
+    "yuketang_bot.models",
+    "yuketang_bot.utils",
+    "DrissionPage",
+]
 
 
 def _safe_print(msg: str) -> None:
@@ -41,7 +75,6 @@ def run():
     icon_path = ROOT / "assets" / "icon.ico"
 
     sep = os.pathsep
-
     add_data = [
         f"{static_dir}{sep}yuketang_bot/web/static",
         f"{example_config}{sep}.",
@@ -55,21 +88,30 @@ def run():
         "--windowed",
         "--clean",
         "--noconfirm",
+        "--collect-all",
+        "uvicorn",
+        "--collect-all",
+        "fastapi",
+        "--collect-all",
+        "starlette",
+        "--collect-submodules",
+        "yuketang_bot",
     ]
 
     for item in add_data:
         args.extend(["--add-data", item])
 
+    for mod in HIDDEN_IMPORTS:
+        args.extend(["--hidden-import", mod])
+
     if icon_path.exists():
         args.extend(["--icon", str(icon_path)])
 
-    # Avoid UnicodeEncodeError on CI consoles (cp1252)
     os.environ.setdefault("PYTHONIOENCODING", "utf-8")
     os.environ.setdefault("PYTHONUTF8", "1")
 
     PyInstaller.__main__.run(args)
 
-    # 打包完成后把示例配置也放到 dist 目录，方便用户
     dist_dir = ROOT / "dist"
     if dist_dir.exists() and example_config.exists():
         shutil.copy(example_config, dist_dir / "config.example.yaml")

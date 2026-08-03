@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import queue
+import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -36,18 +38,34 @@ from .schemas import (
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
 
+def _resolve_static_dir() -> Path:
+    """PyInstaller 打包后静态资源在 _MEIPASS 下"""
+    if getattr(sys, "frozen", False):
+        meipass = Path(getattr(sys, "_MEIPASS", ""))
+        candidates = [
+            meipass / "yuketang_bot" / "web" / "static",
+            meipass / "static",
+            Path(__file__).resolve().parent / "static",
+        ]
+        for c in candidates:
+            if c.exists():
+                return c
+    return STATIC_DIR
+
+
 def create_app(config_path: Optional[str] = None, bind_port: int = 18765) -> FastAPI:
     app = FastAPI(title="雨课堂本地控制台", version=__version__)
     jm = JobManager(config_path=config_path)
     app.state.jm = jm
     app.state.config_path = config_path
     app.state.bind_port = bind_port
+    static_dir = _resolve_static_dir()
 
     # ---------- pages ----------
 
     @app.get("/")
     def index():
-        return FileResponse(STATIC_DIR / "index.html")
+        return FileResponse(static_dir / "index.html")
 
     # ---------- runtime / summary ----------
 
@@ -333,8 +351,8 @@ def create_app(config_path: Optional[str] = None, bind_port: int = 18765) -> Fas
             },
         )
 
-    if STATIC_DIR.exists():
-        app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+    if static_dir.exists():
+        app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
     return app
 
@@ -349,6 +367,13 @@ def run_server(
 
     import uvicorn
 
+    # --windowed 打包后无控制台，sys.stdout/stderr 为 None，
+    # uvicorn 默认日志 Formatter 会调用 isatty() 导致崩溃。
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, "w", encoding="utf-8")
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, "w", encoding="utf-8")
+
     app = create_app(config_path=config_path, bind_port=port)
     if open_browser:
         url = "http://%s:%d/" % (host, port)
@@ -361,4 +386,52 @@ def run_server(
         import threading
         threading.Thread(target=_open, daemon=True).start()
 
-    uvicorn.run(app, host=host, port=port, log_level="info")
+    log_config = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "()": "uvicorn.logging.DefaultFormatter",
+                "fmt": "%(levelprefix)s %(message)s",
+                "use_colors": False,
+            },
+            "access": {
+                "()": "uvicorn.logging.AccessFormatter",
+                "fmt": '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s',
+                "use_colors": False,
+            },
+        },
+        "handlers": {
+            "default": {
+                "formatter": "default",
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stderr",
+            },
+            "access": {
+                "formatter": "access",
+                "class": "logging.StreamHandler",
+                "stream": "ext://sys.stdout",
+            },
+        },
+        "loggers": {
+            "uvicorn": {"handlers": ["default"], "level": "INFO", "propagate": False},
+            "uvicorn.error": {"level": "INFO"},
+            "uvicorn.access": {
+                "handlers": ["access"],
+                "level": "INFO",
+                "propagate": False,
+            },
+        },
+    }
+
+    config = uvicorn.Config(
+        app,
+        host=host,
+        port=port,
+        log_level="info",
+        log_config=log_config,
+        reload=False,
+        workers=1,
+    )
+    server = uvicorn.Server(config)
+    server.run()
