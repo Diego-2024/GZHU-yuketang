@@ -1,13 +1,15 @@
 # 雨课堂通用刷课工具 (yuketang-bot)
 
-可复用的雨课堂自动刷课工具，支持：
+可复用的雨课堂自动刷课工具，支持本地网页控制台、扫码登录、课程发现、断点续刷；数据仅保存在本机（`127.0.0.1`）。
 
-- **本地网页控制台**（推荐）：浏览器操作扫码登录、发现课程、刷课与实时日志
-- CLI：`login` / `discover` / `run` / `status`
-- SQLite 断点续刷，多账号 profile 隔离
-- 自动跳过已看完视频，自动标记无视频课程
+## 下载
 
-参考 Binggo 的本机控制台形态：仅绑定 `127.0.0.1`，数据不离开本机。
+**发布页：** [GitHub Releases v1.0.0](https://github.com/Diego-2024/GZHU-yuketang/releases/tag/v1.0.0)
+
+- **[Windows 安装包（推荐）](https://github.com/Diego-2024/GZHU-yuketang/releases/download/v1.0.0/yuketang-bot-1.0.0-setup.exe)** → `yuketang-bot-1.0.0-setup.exe`
+- **[Windows 便携版](https://github.com/Diego-2024/GZHU-yuketang/releases/download/v1.0.0/yuketang-bot.exe)** → `yuketang-bot.exe`（下载后双击即可）
+
+> 若 Windows SmartScreen 提示「已阻止」，点击「更多信息」→「仍要运行」。详细安装与使用步骤见下方。
 
 ## 声明
 
@@ -19,29 +21,51 @@
 
 使用即表示你已阅读并同意上述声明。
 
-## 下载与安装（推荐）
+## 功能截图
 
-**发布页：** [GitHub Releases v1.0.0](https://github.com/Diego-2024/GZHU-yuketang/releases/tag/v1.0.0)
+> 以下截图中的昵称已替换为「示例用户」，仅作功能演示。
 
-| 文件 | 适合谁 | 说明 |
-|------|--------|------|
-| [`yuketang-bot-1.0.0-setup.exe`](https://github.com/Diego-2024/GZHU-yuketang/releases/download/v1.0.0/yuketang-bot-1.0.0-setup.exe) | 普通用户 | Windows 安装包（推荐），安装后开始菜单 / 桌面可启动 |
-| [`yuketang-bot.exe`](https://github.com/Diego-2024/GZHU-yuketang/releases/download/v1.0.0/yuketang-bot.exe) | 想免安装 | 便携版，下载后双击即可运行 |
+### 概览
+
+![概览](docs/screenshots/overview.png)
+
+### 课程发现（自动标记无视频课程）
+
+![课程发现](docs/screenshots/discover.png)
+
+### 刷课任务清单
+
+![刷课任务](docs/screenshots/run.png)
+
+### 实时任务日志
+
+![任务日志](docs/screenshots/logs.png)
+
+### 账号与设置
+
+![设置](docs/screenshots/settings.png)
+
+## 功能特性
+
+- **本地网页控制台**（推荐）：浏览器操作扫码登录、发现课程、刷课与实时日志
+- CLI：`login` / `discover` / `run` / `status`
+- SQLite 断点续刷，多账号 profile 隔离
+- 自动跳过已看完视频，自动标记无视频课程
+
+## 安装与使用
 
 ### 1. 下载并启动
 
 **方式 A：安装包（推荐）**
 
-1. 下载 `yuketang-bot-1.0.0-setup.exe`
+1. 下载 [`yuketang-bot-1.0.0-setup.exe`](https://github.com/Diego-2024/GZHU-yuketang/releases/download/v1.0.0/yuketang-bot-1.0.0-setup.exe)
 2. 双击安装，按向导完成（可选勾选「创建桌面快捷方式」）
 3. 安装结束后勾选「立即启动」，或从桌面 / 开始菜单打开「雨课堂刷课工具」
 
 **方式 B：便携版**
 
-1. 下载 `yuketang-bot.exe` 到任意文件夹
+1. 下载 [`yuketang-bot.exe`](https://github.com/Diego-2024/GZHU-yuketang/releases/download/v1.0.0/yuketang-bot.exe) 到任意文件夹
 2. 双击运行（首次会自动生成 `config.yaml`）
-
-> **SmartScreen 提示：** 因未做商业代码签名，Windows 可能提示「已阻止」。点击「更多信息」→「仍要运行」即可。
 
 > **首次启动较慢：** 单文件 exe 首次解压需要几秒到十几秒，请等待浏览器自动打开、托盘出现图标。
 
@@ -95,30 +119,6 @@ python main.py web --port 18765
 python main.py web --no-browser
 python main.py gui          # 托盘模式（与 exe 相同体验）
 ```
-
-## 功能截图
-
-> 以下截图中的昵称已替换为「示例用户」，仅作功能演示。
-
-### 概览
-
-![概览](docs/screenshots/overview.png)
-
-### 课程发现（自动标记无视频课程）
-
-![课程发现](docs/screenshots/discover.png)
-
-### 刷课任务清单
-
-![刷课任务](docs/screenshots/run.png)
-
-### 实时任务日志
-
-![任务日志](docs/screenshots/logs.png)
-
-### 账号与设置
-
-![设置](docs/screenshots/settings.png)
 
 ## CLI 用法
 
