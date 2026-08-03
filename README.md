@@ -1,0 +1,82 @@
+# 雨课堂通用刷课工具 (yuketang-bot)
+
+可复用的雨课堂自动刷课工具，支持：
+
+- **本地网页控制台**（推荐）：浏览器操作扫码登录、发现课程、刷课与实时日志
+- CLI：`login` / `discover` / `run` / `status`
+- SQLite 断点续刷，多账号 profile 隔离
+
+参考 Binggo 的本机控制台形态：仅绑定 `127.0.0.1`，数据不离开本机。
+
+## 安装
+
+```bash
+pip install -r requirements.txt
+```
+
+复制配置并按需修改：
+
+```bash
+copy config.example.yaml config.yaml   # Windows
+```
+
+## 网页控制台（推荐）
+
+```bash
+python main.py web
+# 或指定端口
+python main.py web --port 18765
+# 不自动打开浏览器
+python main.py web --no-browser
+```
+
+浏览器访问 `http://127.0.0.1:18765/`：
+
+1. **扫码登录**：打开 Chromium → 手机扫码 → 点「我已扫码」
+2. **课程发现**：从主页抓取课程 → 勾选 → 爬取视频链接入库
+3. **刷课任务**：开始刷课，右侧/下方任务日志实时推送（SSE）
+4. **设置**：修改 base_url / home_url / 账号 / 心跳参数
+
+## CLI 用法
+
+```bash
+python main.py login
+python main.py discover
+python main.py run
+python main.py run --account 账号1
+python main.py status
+python main.py reset --course <course_url>
+```
+
+## 配置说明
+
+见 `config.example.yaml`：
+
+| 字段 | 说明 |
+|------|------|
+| `base_url` | 雨课堂主站或学校子站 |
+| `home_url` | 课程列表主页 |
+| `accounts` | 多账号，每个独立 browser profile |
+| `loop` | 心跳刷课参数 |
+| `db_path` | SQLite 任务库路径 |
+| `profiles_root` | 浏览器 profile 目录 |
+
+## 项目结构
+
+```
+yuketang-bot/
+├── main.py
+├── config.yaml
+└── yuketang_bot/
+    ├── browser.py / discover.py / api.py / runner.py / store.py
+    └── web/                 # 本地控制台
+        ├── app.py           # FastAPI
+        ├── jobs.py          # 后台任务 + SSE
+        └── static/          # SPA 前端
+```
+
+## 依赖
+
+- Python 3.8+
+- requests / DrissionPage / PyYAML / FastAPI / Uvicorn
+- Windows 优先（空格播放依赖窗口置前）

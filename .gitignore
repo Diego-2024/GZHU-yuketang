@@ -1,0 +1,14 @@
+config.yaml
+profiles/
+data/
+__pycache__/
+*.pyc
+*.pyo
+.Python
+*.egg-info/
+.venv/
+venv/
+.env
+.idea/
+.vscode/
+*.log

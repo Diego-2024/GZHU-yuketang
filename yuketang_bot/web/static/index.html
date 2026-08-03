@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>雨课堂 · 本地控制台</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Noto+Serif+SC:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="app-shell" id="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-inner">
+        <div class="brand-block">
+          <div class="brand-mark">雨</div>
+          <div class="sidebar-fade">
+            <div class="brand-title">雨课堂</div>
+            <div class="brand-sub">本地刷课控制台</div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="主导航">
+          <button class="nav-item active" data-page="overview" type="button">
+            <span class="nav-ico" aria-hidden="true">⌂</span>
+            <span class="sidebar-fade">概览</span>
+          </button>
+          <button class="nav-item" data-page="login" type="button">
+            <span class="nav-ico" aria-hidden="true">⌁</span>
+            <span class="sidebar-fade">扫码登录</span>
+          </button>
+          <button class="nav-item" data-page="discover" type="button">
+            <span class="nav-ico" aria-hidden="true">◎</span>
+            <span class="sidebar-fade">课程发现</span>
+          </button>
+          <button class="nav-item" data-page="run" type="button">
+            <span class="nav-ico" aria-hidden="true">▶</span>
+            <span class="sidebar-fade">刷课任务</span>
+          </button>
+          <button class="nav-item" data-page="settings" type="button">
+            <span class="nav-ico" aria-hidden="true">⚙</span>
+            <span class="sidebar-fade">设置</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-foot">
+          <div class="sidebar-system-label sidebar-fade">系统</div>
+          <div class="sidebar-account-mini" id="sidebar-account">
+            <span class="dot"></span>
+            <span class="sidebar-fade" id="sidebar-account-text">加载中…</span>
+          </div>
+          <div class="sidebar-fade muted tiny" id="runtime-label">127.0.0.1</div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-shell">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button type="button" class="system-btn" id="btn-sidebar" aria-label="切换侧边栏">☰</button>
+          <div>
+            <h1 id="page-title">概览</h1>
+            <p id="page-desc" class="muted">账号状态、任务进度与快捷操作</p>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div id="job-pill" class="job-chip idle">空闲</div>
+          <button type="button" class="system-btn" id="btn-theme" aria-label="切换主题">◐</button>
+          <button type="button" class="btn ghost" id="btn-refresh">刷新</button>
+        </div>
+      </header>
+
+      <main class="content-area">
+        <!-- 概览 -->
+        <section class="page active" id="page-overview">
+          <div class="stat-grid" id="stat-cards"></div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">上手流程</p>
+                <h2>开始刷课</h2>
+              </div>
+            </div>
+            <div class="setup-steps" id="setup-steps"></div>
+            <div class="panel-foot">
+              <p class="muted" id="setup-hint">完成登录与课程发现后即可开始刷课。</p>
+              <button class="btn primary" data-goto="run" type="button">去刷课任务</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">快捷操作</p>
+                <h2>常用入口</h2>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn primary" data-goto="login" type="button">扫码登录</button>
+              <button class="btn" data-goto="discover" type="button">发现课程</button>
+              <button class="btn accent" data-goto="run" type="button">开始刷课</button>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="panel">
+              <div class="panel-head"><h2>账号</h2></div>
+              <div id="overview-accounts" class="stack-list"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><h2>课程进度</h2></div>
+              <div id="overview-courses" class="stack-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 登录 -->
+        <section class="page" id="page-login">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">认证</p>
+                <h2>扫码登录</h2>
+              </div>
+            </div>
+            <p class="muted block">将打开 Chromium 窗口显示雨课堂登录页，请用手机 App 扫码。扫码成功后点击「我已扫码」。</p>
+            <div class="field">
+              <label for="login-account">账号</label>
+              <div class="account-picker">
+                <select id="login-account" class="input"></select>
+                <button type="button" class="btn ghost" id="btn-login-add-account">+ 添加账号</button>
+              </div>
+            </div>
+            <div class="account-add-box" id="account-add-box" hidden>
+              <div class="grid-2">
+                <div class="field">
+                  <label for="new-account-name">显示名称</label>
+                  <input id="new-account-name" class="input" type="text" placeholder="留空自动生成，如 账号2" />
+                </div>
+                <div class="field">
+                  <label for="new-account-profile">profile 目录</label>
+                  <input id="new-account-profile" class="input" type="text" placeholder="留空自动生成，如 account_2" />
+                </div>
+              </div>
+              <div class="btn-row">
+                <button type="button" class="btn primary" id="btn-account-add-confirm">确认添加</button>
+                <button type="button" class="btn ghost" id="btn-account-add-cancel">取消</button>
+              </div>
+              <div id="account-add-msg" class="muted"></div>
+            </div>
+            <div class="btn-row">
+              <button class="btn primary" id="btn-login-start" type="button">打开浏览器扫码</button>
+              <button class="btn accent" id="btn-login-confirm" type="button">我已扫码</button>
+              <button class="btn danger" id="btn-login-cancel" type="button">取消</button>
+            </div>
+            <div id="login-status" class="status-box">尚未开始</div>
+          </div>
+        </section>
+
+        <!-- 发现 -->
+        <section class="page" id="page-discover">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">课程</p>
+                <h2>从主页发现课程</h2>
+              </div>
+            </div>
+            <p class="muted block">打开雨课堂主页，自动抓取课程列表。勾选后爬取视频链接写入本地数据库。</p>
+            <div class="field">
+              <label for="discover-account">账号</label>
+              <select id="discover-account" class="input"></select>
+            </div>
+            <div class="btn-row">
+              <button class="btn primary" id="btn-discover-start" type="button">开始发现</button>
+              <button class="btn accent" id="btn-discover-crawl" type="button" disabled>爬取选中课程</button>
+              <button class="btn danger" id="btn-discover-cancel" type="button">取消</button>
+            </div>
+            <label class="check">
+              <input type="checkbox" id="discover-sync-all" />
+              同步视频清单到所有账号
+            </label>
+            <div id="course-list" class="course-list"></div>
+          </div>
+        </section>
+
+        <!-- 刷课 -->
+        <section class="page" id="page-run">
+          <div class="panel run-control">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">任务</p>
+                <h2>刷课任务</h2>
+              </div>
+              <div id="run-status" class="job-chip idle">空闲</div>
+            </div>
+            <div class="run-toolbar">
+              <div class="field grow">
+                <label for="run-account">账号（留空=全部）</label>
+                <select id="run-account" class="input">
+                  <option value="">全部账号</option>
+                </select>
+              </div>
+              <div class="btn-row end">
+                <button class="btn accent" id="btn-run-start" type="button">开始刷课</button>
+                <button class="btn danger" id="btn-run-cancel" type="button">取消任务</button>
+              </div>
+            </div>
+            <div class="mini-stats" id="run-mini-stats"></div>
+          </div>
+
+          <div class="panel tasks-panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">清单</p>
+                <h2>视频任务列表</h2>
+              </div>
+              <div class="btn-row compact">
+                <button class="btn ghost small" id="btn-videos-refresh" type="button">刷新列表</button>
+              </div>
+            </div>
+
+            <div class="filters" id="video-filters">
+              <div class="filter-group">
+                <button type="button" class="filter-pill active" data-status="">全部</button>
+                <button type="button" class="filter-pill" data-status="pending">待刷</button>
+                <button type="button" class="filter-pill" data-status="done">已完成</button>
+                <button type="button" class="filter-pill" data-status="failed">失败</button>
+              </div>
+              <div class="filter-tools">
+                <select id="video-account-filter" class="input compact">
+                  <option value="">全部账号</option>
+                </select>
+                <input id="video-search" class="input compact" type="search" placeholder="搜索标题 / ID…" />
+              </div>
+            </div>
+            <p class="filter-summary muted" id="video-summary">加载中…</p>
+
+            <div class="table-wrap">
+              <table class="data-table" id="video-table">
+                <thead>
+                  <tr>
+                    <th style="width:88px">状态</th>
+                    <th>视频</th>
+                    <th style="width:100px">账号</th>
+                    <th style="width:140px">进度</th>
+                    <th style="width:120px">课程</th>
+                  </tr>
+                </thead>
+                <tbody id="video-tbody"></tbody>
+              </table>
+              <div id="video-empty" class="empty-state" hidden>
+                <strong>暂无视频任务</strong>
+                <span>请先在「课程发现」中爬取视频清单</span>
+              </div>
+            </div>
+
+            <div class="pagination" id="video-pagination"></div>
+          </div>
+        </section>
+
+        <!-- 设置 -->
+        <section class="page" id="page-settings">
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">账号</p>
+                <h2>账号管理</h2>
+              </div>
+              <button type="button" class="btn primary" id="btn-settings-add-account">+ 添加账号</button>
+            </div>
+            <p class="muted block">每个账号对应独立 Chromium 配置目录，可分别扫码登录、发现课程与刷课。</p>
+            <div id="settings-account-list" class="stack-list"></div>
+            <div class="account-add-box" id="settings-account-add-box" hidden>
+              <div class="grid-2">
+                <div class="field">
+                  <label for="settings-new-account-name">显示名称</label>
+                  <input id="settings-new-account-name" class="input" type="text" placeholder="留空自动生成，如 账号2" />
+                </div>
+                <div class="field">
+                  <label for="settings-new-account-profile">profile 目录</label>
+                  <input id="settings-new-account-profile" class="input" type="text" placeholder="留空自动生成，如 account_2" />
+                </div>
+              </div>
+              <div class="btn-row">
+                <button type="button" class="btn primary" id="btn-settings-account-add-confirm">确认添加</button>
+                <button type="button" class="btn ghost" id="btn-settings-account-add-cancel">取消</button>
+              </div>
+              <div id="settings-account-add-msg" class="muted"></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">配置</p>
+                <h2>设置</h2>
+              </div>
+            </div>
+            <div class="field">
+              <label for="set-base-url">base_url</label>
+              <input id="set-base-url" class="input" type="text" />
+            </div>
+            <div class="field">
+              <label for="set-home-url">home_url</label>
+              <input id="set-home-url" class="input" type="text" />
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <label for="set-hb-count">heartbeat_count</label>
+                <input id="set-hb-count" class="input" type="number" />
+              </div>
+              <div class="field">
+                <label for="set-target-rate">target_rate</label>
+                <input id="set-target-rate" class="input" type="number" step="0.01" />
+              </div>
+              <div class="field">
+                <label for="set-playback">playback_rate</label>
+                <input id="set-playback" class="input" type="number" step="0.1" />
+              </div>
+              <div class="field">
+                <label for="set-batch-sleep">batch_sleep</label>
+                <input id="set-batch-sleep" class="input" type="number" step="0.5" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="set-accounts">accounts（JSON）</label>
+              <textarea id="set-accounts" class="input" rows="5"></textarea>
+            </div>
+            <div class="btn-row">
+              <button class="btn primary" id="btn-settings-save" type="button">保存设置</button>
+            </div>
+            <div id="settings-msg" class="status-box"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- 任务日志 dock：收起时仅显示底部按钮，展开时面板向上弹出 -->
+  <div class="log-dock" id="log-dock">
+    <button type="button" class="log-dock-toggle" id="btn-log-toggle" aria-expanded="false">
+      <span class="log-dock-ico" aria-hidden="true">☰</span>
+      <span>任务日志</span>
+      <span class="log-dock-badge" id="log-badge" hidden>0</span>
+    </button>
+    <div class="log-dock-panel" id="log-panel">
+      <div class="log-dock-head" id="log-drag-handle" title="拖拽移动">
+        <strong class="log-dock-title">任务日志 <span class="log-drag-hint">⋮⋮</span></strong>
+        <div class="btn-row compact">
+          <button type="button" class="btn ghost small" id="btn-log-clear">清空</button>
+          <button type="button" class="btn ghost small" id="btn-log-close">收起</button>
+        </div>
+      </div>
+      <pre id="log-view"></pre>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

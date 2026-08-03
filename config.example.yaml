@@ -1,0 +1,26 @@
+# 雨课堂通用刷课工具配置
+# 复制为 config.yaml 后按需修改
+
+base_url: https://www.yuketang.cn
+home_url: https://www.yuketang.cn/v2/web/index
+
+accounts:
+  - name: 账号1
+    profile: account_1
+  # - name: 账号2
+  #   profile: account_2
+
+loop:
+  heartbeat_count: 10
+  heartbeat_interval: 5
+  playback_rate: 1
+  batch_sleep: 2
+  target_rate: 0.95
+  max_batches: 200
+
+db_path: ./data/yuketang.db
+profiles_root: ./profiles
+base_port: 9222
+
+# 监听 heartbeat 超时（秒）
+listen_timeout: 60
