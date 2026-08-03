@@ -29,6 +29,13 @@ from yuketang_bot.runner import run_auto, run_login
 from yuketang_bot.store import Store
 
 
+def cmd_gui(args):
+    from yuketang_bot.launcher import main as launcher_main
+
+    launcher_main(port=args.port)
+    return 0
+
+
 def cmd_login(args):
     cfg = load_config(args.config)
     run_login(cfg)
@@ -141,6 +148,10 @@ def build_parser() -> argparse.ArgumentParser:
     p_web.add_argument("--port", type=int, default=18765, help="端口，默认 18765")
     p_web.add_argument("--no-browser", action="store_true", help="不自动打开浏览器")
     p_web.set_defaults(func=cmd_web)
+
+    p_gui = sub.add_parser("gui", help="启动托盘程序（打包后双击入口）")
+    p_gui.add_argument("--port", type=int, default=18765, help="端口，默认 18765")
+    p_gui.set_defaults(func=cmd_gui)
 
     p_login = sub.add_parser("login", help="扫码登录，保存 browser profile")
     p_login.set_defaults(func=cmd_login)

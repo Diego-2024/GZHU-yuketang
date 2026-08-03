@@ -105,3 +105,31 @@ yuketang-bot/
 - Python 3.8+
 - requests / DrissionPage / PyYAML / FastAPI / Uvicorn
 - Windows 优先（空格播放依赖窗口置前）
+
+## 打包成 exe（Windows）
+
+安装依赖后执行：
+
+```bash
+pip install -r requirements.txt
+python build.py
+```
+
+打包完成后在 `dist/` 目录生成：
+
+```
+dist/
+├── yuketang-bot.exe
+└── config.example.yaml
+```
+
+**使用方法：**
+
+1. 首次运行前，把 `config.example.yaml` 复制为 `config.yaml`（或双击 exe 后自动复制）。
+2. 双击 `yuketang-bot.exe`：
+   - 自动在后台启动本地控制台服务
+   - 自动打开浏览器访问 `http://127.0.0.1:18765/`
+   - 在系统托盘显示图标，右键可「打开控制台」/「退出」
+3. 退出时右键托盘图标选择「退出」即可。
+
+> 注意：打包后的 exe 首次启动会较慢（PyInstaller 单文件解压），请耐心等待托盘图标出现。

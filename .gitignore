@@ -12,3 +12,6 @@ venv/
 .idea/
 .vscode/
 *.log
+build/
+dist/
+*.spec
