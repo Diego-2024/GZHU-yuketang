@@ -37,6 +37,30 @@ python main.py web --no-browser
 3. **刷课任务**：开始刷课，右侧/下方任务日志实时推送（SSE）
 4. **设置**：修改 base_url / home_url / 账号 / 心跳参数
 
+## 功能截图
+
+> 以下截图中的昵称已替换为「示例用户」，仅作功能演示。
+
+### 概览
+
+![概览](docs/screenshots/overview.png)
+
+### 课程发现（自动标记无视频课程）
+
+![课程发现](docs/screenshots/discover.png)
+
+### 刷课任务清单
+
+![刷课任务](docs/screenshots/run.png)
+
+### 实时任务日志
+
+![任务日志](docs/screenshots/logs.png)
+
+### 账号与设置
+
+![设置](docs/screenshots/settings.png)
+
 ## CLI 用法
 
 ```bash
