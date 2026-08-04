@@ -54,6 +54,61 @@
 - SQLite 断点续刷，多账号 profile 隔离
 - 自动跳过已看完视频，自动标记无视频课程
 
+## 基本实现原理
+
+本工具运行在本机，不经过第三方云服务。核心思路是：**用浏览器完成登录与抓包，用 HTTP 心跳接口模拟播放进度，用 SQLite 做任务队列与断点续刷。**
+
+```mermaid
+flowchart LR
+  UI[本地Web控制台] --> API[FastAPI_127.0.0.1]
+  API --> Jobs[后台任务]
+  Jobs --> Browser[Chromium登录抓包]
+  Jobs --> Heart[Heartbeat上报]
+  Jobs --> DB[(SQLite任务库)]
+  Browser --> YKT[雨课堂]
+  Heart --> YKT
+```
+
+### 1. 本地控制台
+
+- FastAPI 只监听 `127.0.0.1`，浏览器打开本机页面操作
+- 任务日志通过 SSE 实时推送
+- 配置、数据库、浏览器登录态都保存在本机目录
+
+### 2. 扫码登录（复用 Chromium Profile）
+
+- 每个账号对应独立浏览器目录 `profiles/account_x/`
+- 首次用雨课堂 App 扫码；之后检测 Cookie 中的 `sessionid`，有则直接复用，无需反复扫码
+
+### 3. 发现课程与爬取视频
+
+1. 打开「我听的课」主页，调用课程列表 API（失败则从页面链接兜底）
+2. 进入课程内容页，解析真实 LMS 地址（`sign` / `classroom_id`）
+3. 拉取章节目录，筛选视频节点（`leaf_type=0`），写入本地 SQLite，状态为 `pending`
+4. 无法解析章节或没有视频的课程，标记为「无视频」
+
+### 4. 刷课（Heartbeat 模拟进度）
+
+刷课主体**不依赖浏览器一直挂着看完**，大致流程：
+
+1. **预检进度**：先查 `get_video_watch_progress`；若已完成 / 达到 `target_rate`（默认 95%），直接跳过
+2. **首次抓包**：对未完成视频，短暂打开播放页，捕获真实的 `video-log/heartbeat` 请求参数
+3. **批量心跳**：用本机 HTTP 客户端向 `POST /video-log/heartbeat/` 按批次上报进度（`cp` / `sq` / `ts` 等字段）
+4. **轮询确认**：每批后查询观看进度，达标则标记 `done`，继续下一条
+
+相关配置含义见设置页 / `config.example.yaml`：`heartbeat_count`、`batch_sleep`、`target_rate`、`playback_rate` 等。
+
+### 5. 断点续刷与数据隔离
+
+| 数据 | 作用 |
+|------|------|
+| SQLite `videos` | 视频任务队列（`pending` / `done` / `failed`） |
+| `progress_log` | 每次进度快照 |
+| `profiles/` | 浏览器登录态（Cookie） |
+| `config.yaml` | 账号、刷课参数、路径 |
+
+中途退出后再次「开始刷课」，只会继续处理仍为 `pending` 的视频。
+
 ## 安装与使用
 
 ### 1. 下载并启动
