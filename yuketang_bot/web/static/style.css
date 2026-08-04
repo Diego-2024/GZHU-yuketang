@@ -392,6 +392,13 @@ body.log-dock-open .content-area {
   color: var(--foreground-muted);
   margin-bottom: 6px;
 }
+.field-hint {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--foreground-muted);
+  opacity: .85;
+}
 .input, .field input, .field select, .field textarea {
   width: 100%;
   background: var(--input-bg);

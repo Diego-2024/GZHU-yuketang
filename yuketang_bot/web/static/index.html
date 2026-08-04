@@ -299,34 +299,41 @@
               </div>
             </div>
             <div class="field">
-              <label for="set-base-url">base_url</label>
+              <label for="set-base-url">base_url · 雨课堂主站地址</label>
               <input id="set-base-url" class="input" type="text" />
+              <p class="field-hint">一般不用改。学校独立站点时可换成对应域名。</p>
             </div>
             <div class="field">
-              <label for="set-home-url">home_url</label>
+              <label for="set-home-url">home_url · 课程列表主页</label>
               <input id="set-home-url" class="input" type="text" />
+              <p class="field-hint">发现课程时打开的「我听的课」页面地址。</p>
             </div>
             <div class="grid-2">
               <div class="field">
-                <label for="set-hb-count">heartbeat_count</label>
+                <label for="set-hb-count">heartbeat_count · 每批心跳次数</label>
                 <input id="set-hb-count" class="input" type="number" />
+                <p class="field-hint">刷一个视频时，每轮上报进度的次数。</p>
               </div>
               <div class="field">
-                <label for="set-target-rate">target_rate</label>
+                <label for="set-target-rate">target_rate · 目标完成率</label>
                 <input id="set-target-rate" class="input" type="number" step="0.01" />
+                <p class="field-hint">达到该比例视为刷完，如 0.95 表示 95%。</p>
               </div>
               <div class="field">
-                <label for="set-playback">playback_rate</label>
+                <label for="set-playback">playback_rate · 播放倍速</label>
                 <input id="set-playback" class="input" type="number" step="0.1" />
+                <p class="field-hint">视频播放速度，1 为正常，过大可能异常。</p>
               </div>
               <div class="field">
-                <label for="set-batch-sleep">batch_sleep</label>
+                <label for="set-batch-sleep">batch_sleep · 批次间隔（秒）</label>
                 <input id="set-batch-sleep" class="input" type="number" step="0.5" />
+                <p class="field-hint">两轮心跳之间的等待时间，可降低请求频率。</p>
               </div>
             </div>
             <div class="field">
-              <label for="set-accounts">accounts（JSON）</label>
+              <label for="set-accounts">accounts · 账号列表（JSON）</label>
               <textarea id="set-accounts" class="input" rows="5"></textarea>
+              <p class="field-hint">建议在上方「账号管理」添加；此处可高级编辑 name / profile / port。</p>
             </div>
             <div class="btn-row">
               <button class="btn primary" id="btn-settings-save" type="button">保存设置</button>

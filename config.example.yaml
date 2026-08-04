@@ -1,7 +1,9 @@
 # 雨课堂通用刷课工具配置
 # 复制为 config.yaml 后按需修改
 
+# 雨课堂主站地址（学校独立站可改）
 base_url: https://www.yuketang.cn
+# 课程列表主页（发现课程时打开）
 home_url: https://www.yuketang.cn/v2/web/index
 
 accounts:
@@ -11,15 +13,24 @@ accounts:
   #   profile: account_2
 
 loop:
+  # 每批心跳上报次数
   heartbeat_count: 10
+  # 两次心跳间隔（秒）
   heartbeat_interval: 5
+  # 播放倍速（1=正常）
   playback_rate: 1
+  # 批次之间等待秒数
   batch_sleep: 2
+  # 目标完成率，达到即视为刷完（0.95=95%）
   target_rate: 0.95
+  # 单视频最大批次数，防止死循环
   max_batches: 200
 
+# 本地任务数据库路径
 db_path: ./data/yuketang.db
+# 浏览器登录态目录
 profiles_root: ./profiles
+# 调试端口起始值（一般自动分配）
 base_port: 9222
 
 # 监听 heartbeat 超时（秒）
