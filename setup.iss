@@ -23,7 +23,7 @@ LicenseFile=
 InfoBeforeFile=
 OutputDir=dist
 OutputBaseFilename=yuketang-bot-{#MyAppVersion}-setup
-SetupIconFile=
+SetupIconFile=assets\icon.ico
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=lowest
@@ -37,6 +37,7 @@ RestartApplications=no
 WizardStyle=modern
 DirExistsWarning=no
 UsePreviousAppDir=yes
+SetupLogging=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

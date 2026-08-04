@@ -80,6 +80,12 @@ def run():
         f"{static_dir}{sep}yuketang_bot/web/static",
         f"{example_config}{sep}.",
     ]
+    icon_png = ROOT / "assets" / "icon.png"
+    if icon_png.exists():
+        add_data.append(f"{icon_png}{sep}assets")
+    icon_ico = ROOT / "assets" / "icon.ico"
+    if icon_ico.exists():
+        add_data.append(f"{icon_ico}{sep}assets")
 
     args = [
         str(ROOT / "yuketang_bot" / "launcher.py"),

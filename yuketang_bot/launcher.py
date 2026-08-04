@@ -96,7 +96,19 @@ def ensure_config() -> str:
 
 
 def _create_tray_image():
+    """托盘图标：优先使用 assets/icon.png，否则程序生成"""
     from PIL import Image, ImageDraw
+
+    for candidate in (
+        get_install_dir() / "assets" / "icon.png",
+        get_resource_dir() / "assets" / "icon.png",
+        Path(__file__).resolve().parent.parent / "assets" / "icon.png",
+    ):
+        if candidate.exists():
+            try:
+                return Image.open(candidate).convert("RGBA").resize((64, 64))
+            except Exception:
+                pass
 
     size = 64
     img = Image.new("RGBA", (size, size), (135, 206, 250, 255))
